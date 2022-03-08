@@ -52,6 +52,8 @@ dependencies {
     implementation("io.vertx:vertx-lang-kotlin-coroutines:$vertxVersion")
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.2")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+    testImplementation("org.ehcache:ehcache:3.9.9")
+    testImplementation("javax.cache:cache-api:1.1.1")
 }
 
 tasks.getByName<Test>("test") {
