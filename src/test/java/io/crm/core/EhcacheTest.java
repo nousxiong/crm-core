@@ -5,8 +5,9 @@ import org.ehcache.CacheManager;
 import org.ehcache.config.builders.CacheConfigurationBuilder;
 import org.ehcache.config.builders.CacheManagerBuilder;
 import org.ehcache.config.builders.ResourcePoolsBuilder;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class EhcacheTest {
     @Test
@@ -18,6 +19,6 @@ public class EhcacheTest {
         ).build(true);
 
         Cache<Long, String> preConfigured = cacheManager.getCache("preConfigured", Long.class, String.class);
-        Assertions.assertNull(preConfigured.get(1L));
+        assertNull(preConfigured.get(1L));
     }
 }
