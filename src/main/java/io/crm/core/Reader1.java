@@ -2,8 +2,6 @@ package io.crm.core;
 
 import io.vertx.core.Future;
 
-import java.util.function.BiFunction;
-
 /**
  * Created by xiongxl in 2022/3/9
  * 带参数的值读取器
@@ -12,5 +10,7 @@ import java.util.function.BiFunction;
  * @param <A> 参数类型
  * @see Reader
  */
-public interface Reader1<K, V, A> extends BiFunction<K, A, Future<V>> {
+@FunctionalInterface
+public interface Reader1<K, V, A> {
+    Future<V> read(K key, A arg);
 }
