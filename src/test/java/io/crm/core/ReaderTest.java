@@ -11,11 +11,11 @@ class ReaderTest {
     @Test
     public void testReader() {
         int ival = new Random().nextInt();
-        String res = handleReader(ival, (i) -> Future.succeededFuture(i.toString()));
-        assertEquals(ival, Integer.valueOf(res));
+        String res = handleReader(ival, (i, istr) -> Future.succeededFuture(i.toString() + istr));
+        assertEquals(String.valueOf(ival) + ival, res);
     }
 
-    private String handleReader(int ival, Reader<Integer, String> reader) {
-        return reader.apply(ival).result();
+    private String handleReader(int ival, Reader1<Integer, String, String> reader) {
+        return reader.read(ival, String.valueOf(ival)).result();
     }
 }

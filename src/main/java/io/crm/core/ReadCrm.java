@@ -34,6 +34,7 @@ public class ReadCrm<K, V> {
         if (i < 0) return Future.succeededFuture(value);
         ReadTier<K, V> tier = readTiers.get(i);
         if (tier.getCacher() == null) return cache(i - 1, key, value);
+        if (tier.getInterceptor() != null && !tier.getInterceptor().intercept(key, value)) return cache(i - 1, key, value);
         return tier.getCacher().cache(key, value).compose(v -> cache(i - 1, key, v));
     }
 }
