@@ -16,11 +16,11 @@ public class ReadCrmBuilder<K, V> implements Builder<ReadCrm<K, V>> {
     private ReadCrmBuilder() {
     }
 
-    public static <K, V> ReadCrmBuilder<K, V> newBuilder() {
+    public static <K, V> ReadCrmBuilder<K, V> newBuilder(Class<K> keyType, Class<V> valueType) {
         return new ReadCrmBuilder<>();
     }
 
-    public ReadCrmBuilder<K, V> withLoadTier(ReadTier<K, V> readTier) {
+    public ReadCrmBuilder<K, V> withReadTier(ReadTier<K, V> readTier) {
         Objects.requireNonNull(readTier);
         readTiers.add(readTier);
         return this;

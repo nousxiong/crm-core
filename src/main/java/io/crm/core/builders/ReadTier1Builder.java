@@ -26,13 +26,11 @@ public class ReadTier1Builder<K, V, A> implements Builder<ReadTier1<K, V, A>> {
     }
 
     public ReadTier1Builder<K, V, A> withCacher(Cacher1<K, V, A> cacher) {
-        Objects.requireNonNull(cacher);
         this.cacher = cacher;
         return this;
     }
 
     public ReadTier1Builder<K, V, A> withInterceptor(Interceptor1<K, V, A> interceptor) {
-        Objects.requireNonNull(interceptor);
         this.interceptor = interceptor;
         return this;
     }

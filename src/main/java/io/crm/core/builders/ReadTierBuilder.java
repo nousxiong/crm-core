@@ -18,7 +18,7 @@ public class ReadTierBuilder<K, V> implements Builder<ReadTier<K, V>> {
     private ReadTierBuilder() {
     }
 
-    public static <K, V> ReadTierBuilder<K, V> newBuilder() {
+    public static <K, V> ReadTierBuilder<K, V> newBuilder(Class<K> keyType, Class<V> valueType) {
         return new ReadTierBuilder<>();
     }
 
@@ -29,13 +29,11 @@ public class ReadTierBuilder<K, V> implements Builder<ReadTier<K, V>> {
     }
 
     public ReadTierBuilder<K, V> withCacher(Cacher<K, V> cacher) {
-        Objects.requireNonNull(cacher);
         this.cacher = cacher;
         return this;
     }
 
     public ReadTierBuilder<K, V> withInterceptor(Interceptor<K, V> interceptor) {
-        Objects.requireNonNull(interceptor);
         this.interceptor = interceptor;
         return this;
     }

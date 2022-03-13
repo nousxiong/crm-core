@@ -20,7 +20,7 @@ public class ReadCrm1Builder<K, V, A> implements Builder<ReadCrm1<K, V, A>> {
         return new ReadCrm1Builder<>();
     }
 
-    public ReadCrm1Builder<K, V, A> withLoadTier(ReadTier1<K, V, A> readTier) {
+    public ReadCrm1Builder<K, V, A> withReadTier(ReadTier1<K, V, A> readTier) {
         Objects.requireNonNull(readTier);
         readTiers.add(readTier);
         return this;
