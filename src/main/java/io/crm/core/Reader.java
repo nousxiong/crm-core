@@ -10,5 +10,10 @@ import io.vertx.core.Future;
  */
 @FunctionalInterface
 public interface Reader<K, V> {
+    /**
+     * 读取操作
+     * @param key 指定键
+     * @return 返回带有值的Future，如果带的值null表示指定的键对应的值不存在
+     */
     Future<V> read(K key);
 }
