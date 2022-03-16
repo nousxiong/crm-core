@@ -4,21 +4,29 @@ import io.vertx.core.Future;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * Created by xiongxl in 2022/3/9
+ * 缓存关系读取类
  * @param <K>
  * @param <V>
  */
 public class ReadCrm<K, V> {
     private final List<ReadTier<K, V>> readTiers = new ArrayList<>();
 
+    public ReadCrm() {
+    }
+
     public ReadCrm(List<ReadTier<K, V>> readTiers) {
-        Objects.requireNonNull(readTiers);
+        if (readTiers == null) return;
         this.readTiers.addAll(readTiers);
     }
 
+    /**
+     * 读取操作
+     * @param key 键
+     * @return Future值
+     */
     public Future<V> read(K key) {
         if (readTiers.isEmpty()) return Future.succeededFuture();
         return read(0, key);
@@ -34,7 +42,7 @@ public class ReadCrm<K, V> {
         if (i < 0) return Future.succeededFuture(value);
         ReadTier<K, V> tier = readTiers.get(i);
         if (tier.getCacher() == null) return cache(i - 1, key, value);
-        if (tier.getInterceptor() != null && !tier.getInterceptor().intercept(key, value)) return cache(i - 1, key, value);
+        if (!tier.getInterceptor().intercept(key, value)) return cache(i - 1, key, value);
         return tier.getCacher().cache(key, value).compose(v -> cache(i - 1, key, v));
     }
 }

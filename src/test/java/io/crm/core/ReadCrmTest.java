@@ -2,6 +2,7 @@ package io.crm.core;
 
 import io.crm.core.builders.ReadCrmBuilder;
 import io.crm.core.builders.ReadTierBuilder;
+import io.crm.core.noop.NoopInterceptor;
 import io.vertx.core.Future;
 import org.junit.jupiter.api.Test;
 
@@ -63,7 +64,7 @@ class ReadCrmTest {
             Map<String, MyValue> cacheSource,
             Map<String, MyValue> sysOfRecSource
     ) {
-        return rcrmOfCachePick(cacheSource, sysOfRecSource, null);
+        return rcrmOfCachePick(cacheSource, sysOfRecSource, NoopInterceptor.get());
     }
 
     /**
