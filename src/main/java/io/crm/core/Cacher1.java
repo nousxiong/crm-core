@@ -13,4 +13,8 @@ import io.vertx.core.Future;
 @FunctionalInterface
 public interface Cacher1<K, V, A> {
     Future<V> cache(K key, V value, A arg);
+
+    default Cacher<K, V> toCacher() {
+        return (key, value) -> this.cache(key, value, null);
+    }
 }

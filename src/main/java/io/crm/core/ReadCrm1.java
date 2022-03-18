@@ -4,7 +4,6 @@ import io.vertx.core.Future;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * Created by xiongxl in 2022/3/9
@@ -15,8 +14,11 @@ import java.util.Objects;
 public class ReadCrm1<K, V, A> {
     private final List<ReadTier1<K, V, A>> readTiers = new ArrayList<>();
 
+    public ReadCrm1() {
+    }
+
     public ReadCrm1(List<ReadTier1<K, V, A>> readTiers) {
-        Objects.requireNonNull(readTiers);
+        if (readTiers == null) return;
         this.readTiers.addAll(readTiers);
     }
 
@@ -35,7 +37,7 @@ public class ReadCrm1<K, V, A> {
         if (i < 0) return Future.succeededFuture(value);
         ReadTier1<K, V, A> tier = readTiers.get(i);
         if (tier.getCacher() == null) return cache(i - 1, key, value, arg);
-        if (tier.getInterceptor() != null && !tier.getInterceptor().intercept(key, value, arg)) return cache(i - 1, key, value, arg);
+        if (!tier.getInterceptor().intercept(key, value, arg)) return cache(i - 1, key, value, arg);
         return tier.getCacher().cache(key, value, arg).compose(v -> cache(i - 1, key, v, arg));
     }
 }

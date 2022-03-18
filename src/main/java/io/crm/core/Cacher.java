@@ -17,4 +17,8 @@ public interface Cacher<K, V> {
      * @return 返回带有最新值的Future，这个最新值可能是其它write/cache操作进行的结果（比如比当前write时指定的值要新）
      */
     Future<V> cache(K key, V value);
+
+    default Cacher1<K, V, Void> toCacher1() {
+        return (key, value, arg) -> this.cache(key, value);
+    }
 }

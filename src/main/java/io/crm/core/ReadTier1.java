@@ -1,5 +1,7 @@
 package io.crm.core;
 
+import io.crm.core.noop.*;
+
 import java.util.Objects;
 
 /**
@@ -24,8 +26,22 @@ public class ReadTier1<K, V, A> {
         return interceptor;
     }
 
+    public ReadTier1() {
+        this(NoopReader1.get(), NoopCacher1.get(), NoopInterceptor1.get());
+    }
+
+    public ReadTier1(Reader1<K, V, A> reader) {
+        this(reader, NoopCacher1.get(), NoopInterceptor1.get());
+    }
+
+    public ReadTier1(Reader1<K, V, A> reader, Cacher1<K, V, A> cacher) {
+        this(reader, cacher, NoopInterceptor1.get());
+    }
+
     public ReadTier1(Reader1<K, V, A> reader, Cacher1<K, V, A> cacher, Interceptor1<K, V, A> interceptor) {
         Objects.requireNonNull(reader);
+        Objects.requireNonNull(cacher);
+        Objects.requireNonNull(interceptor);
         this.reader = reader;
         this.cacher = cacher;
         this.interceptor = interceptor;

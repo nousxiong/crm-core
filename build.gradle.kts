@@ -1,7 +1,7 @@
 buildscript {
     repositories {
         maven {
-            url = uri("https://maven.aliyun.com/nexus/content/groups/public")
+            url = uri("https://maven.aliyun.com/repository/public")
         }
         mavenCentral()
         gradlePluginPortal()
@@ -9,7 +9,7 @@ buildscript {
 }
 
 plugins {
-    kotlin("jvm") version "1.6.10"
+//    kotlin("jvm") version "1.6.10"
     java
 }
 
@@ -21,12 +21,12 @@ java {
     targetCompatibility = JavaVersion.VERSION_11
 }
 
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-    kotlinOptions {
-        freeCompilerArgs = listOf("-Xjsr305=strict")
-        jvmTarget = "11"
-    }
-}
+//tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+//    kotlinOptions {
+//        freeCompilerArgs = listOf("-Xjsr305=strict")
+//        jvmTarget = "11"
+//    }
+//}
 
 tasks.withType<JavaCompile> {
     options.encoding = "UTF-8"
@@ -35,7 +35,7 @@ tasks.withType<JavaCompile> {
 
 repositories {
     maven {
-        url = uri("https://maven.aliyun.com/nexus/content/groups/public")
+        url = uri("https://maven.aliyun.com/repository/public")
     }
     mavenCentral()
 }
@@ -44,12 +44,12 @@ val vertxVersion: String by project
 val slf4jVersion: String by project
 
 dependencies {
-    implementation(kotlin("stdlib"))
+//    implementation(kotlin("stdlib"))
     implementation("org.slf4j:slf4j-api:$slf4jVersion")
     implementation("org.slf4j:slf4j-simple:$slf4jVersion")
     implementation("io.vertx:vertx-core:$vertxVersion")
-    implementation("io.vertx:vertx-lang-kotlin:$vertxVersion")
-    implementation("io.vertx:vertx-lang-kotlin-coroutines:$vertxVersion")
+//    implementation("io.vertx:vertx-lang-kotlin:$vertxVersion")
+//    implementation("io.vertx:vertx-lang-kotlin-coroutines:$vertxVersion")
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.2")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
     testImplementation("org.ehcache:ehcache:3.9.9")

@@ -1,6 +1,9 @@
 package io.crm.core.builders;
 
 import io.crm.core.*;
+import io.crm.core.noop.NoopCacher1;
+import io.crm.core.noop.NoopInterceptor1;
+import io.crm.core.noop.NoopReader1;
 
 import java.util.Objects;
 
@@ -8,11 +11,11 @@ import java.util.Objects;
  * Created by xiongxl in 2022/3/12
  */
 public class ReadTier1Builder<K, V, A> implements Builder<ReadTier1<K, V, A>> {
-    private Reader1<K, V, A> reader;
-    private Cacher1<K, V, A> cacher;
-    private Interceptor1<K, V, A> interceptor;
+    protected Reader1<K, V, A> reader = NoopReader1.get();
+    protected Cacher1<K, V, A> cacher = NoopCacher1.get();
+    protected Interceptor1<K, V, A> interceptor = NoopInterceptor1.get();
 
-    private ReadTier1Builder() {
+    protected ReadTier1Builder() {
     }
 
     public static <K, V, A> ReadTier1Builder<K, V, A> newBuilder() {

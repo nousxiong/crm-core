@@ -16,4 +16,8 @@ public interface Interceptor<K, V> {
      * @return 返回true表示可以更新，false表示不可更新
      */
     Boolean intercept(K key, V value);
+
+    default Interceptor1<K, V, Void> toInterceptor1() {
+        return (key, value, arg) -> this.intercept(key, value);
+    }
 }
