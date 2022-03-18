@@ -11,14 +11,14 @@ import java.util.Objects;
  * Created by xiongxl in 2022/3/12
  */
 public class ReadTier1Builder<K, V, A> implements Builder<ReadTier1<K, V, A>> {
-    protected Reader1<K, V, A> reader = NoopReader1.get();
-    protected Cacher1<K, V, A> cacher = NoopCacher1.get();
-    protected Interceptor1<K, V, A> interceptor = NoopInterceptor1.get();
+    private Reader1<K, V, A> reader = NoopReader1.get();
+    private Cacher1<K, V, A> cacher = NoopCacher1.get();
+    private Interceptor1<K, V, A> interceptor = NoopInterceptor1.get();
 
     protected ReadTier1Builder() {
     }
 
-    public static <K, V, A> ReadTier1Builder<K, V, A> newBuilder() {
+    public static <K, V, A> ReadTier1Builder<K, V, A> newBuilder(Class<K> keyType, Class<V> valueType, Class<A> argType) {
         return new ReadTier1Builder<>();
     }
 
@@ -29,11 +29,13 @@ public class ReadTier1Builder<K, V, A> implements Builder<ReadTier1<K, V, A>> {
     }
 
     public ReadTier1Builder<K, V, A> withCacher(Cacher1<K, V, A> cacher) {
+        Objects.requireNonNull(cacher);
         this.cacher = cacher;
         return this;
     }
 
     public ReadTier1Builder<K, V, A> withInterceptor(Interceptor1<K, V, A> interceptor) {
+        Objects.requireNonNull(interceptor);
         this.interceptor = interceptor;
         return this;
     }

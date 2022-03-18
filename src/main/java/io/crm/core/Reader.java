@@ -1,5 +1,6 @@
 package io.crm.core;
 
+import io.crm.core.noop.NoopArg;
 import io.vertx.core.Future;
 
 /**
@@ -17,7 +18,7 @@ public interface Reader<K, V> {
      */
     Future<V> read(K key);
 
-    default Reader1<K, V, Void> toReader1() {
+    default Reader1<K, V, NoopArg> toReader1() {
         return (key, arg) -> this.read(key);
     }
 }

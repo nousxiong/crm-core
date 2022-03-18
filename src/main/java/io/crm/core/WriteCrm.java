@@ -1,5 +1,6 @@
 package io.crm.core;
 
+import io.crm.core.noop.NoopArg;
 import io.vertx.core.Future;
 
 import java.util.ArrayList;
@@ -11,15 +12,14 @@ import java.util.List;
  * @param <K>
  * @param <V>
  */
-public class WriteCrm<K, V> {
-    private final List<WriteTier<K, V>> writeTiers = new ArrayList<>();
+public class WriteCrm<K, V> extends WriteCrm1<K, V, NoopArg> {
 
     public WriteCrm() {
+        super();
     }
 
     public WriteCrm(List<WriteTier<K, V>> writeTiers) {
-        if (writeTiers == null) return;
-        this.writeTiers.addAll(writeTiers);
+        super(new ArrayList<>(writeTiers));
     }
 
     /**
@@ -29,14 +29,6 @@ public class WriteCrm<K, V> {
      * @return 返回带有最新值的Future，这个最新值可能是其它并发写入操作的结果
      */
     public Future<V> write(K key, V value) {
-        if (writeTiers.isEmpty()) return Future.succeededFuture(value);
-        return write(0, key, value);
-    }
-
-    private Future<V> write(int i, K key, V value) {
-        if (i >= writeTiers.size()) return Future.succeededFuture(value);
-        WriteTier<K, V> tier = writeTiers.get(i);
-        if (!tier.getInterceptor().intercept(key, value)) return write(i + 1, key, value);
-        return tier.getWriter().write(key, value).compose(v -> write(i + 1, key, v));
+        return super.write(key, value, NoopArg.get());
     }
 }

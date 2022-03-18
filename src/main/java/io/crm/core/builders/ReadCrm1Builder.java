@@ -16,7 +16,7 @@ public class ReadCrm1Builder<K, V, A> implements Builder<ReadCrm1<K, V, A>> {
     private ReadCrm1Builder() {
     }
 
-    public static <K, V, A> ReadCrm1Builder<K, V, A> newBuilder() {
+    public static <K, V, A> ReadCrm1Builder<K, V, A> newBuilder(Class<K> keyType, Class<V> valueType, Class<A> argType) {
         return new ReadCrm1Builder<>();
     }
 

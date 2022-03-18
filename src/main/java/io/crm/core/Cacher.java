@@ -1,5 +1,6 @@
 package io.crm.core;
 
+import io.crm.core.noop.NoopArg;
 import io.vertx.core.Future;
 
 /**
@@ -18,7 +19,7 @@ public interface Cacher<K, V> {
      */
     Future<V> cache(K key, V value);
 
-    default Cacher1<K, V, Void> toCacher1() {
+    default Cacher1<K, V, NoopArg> toCacher1() {
         return (key, value, arg) -> this.cache(key, value);
     }
 }

@@ -1,14 +1,17 @@
 package io.crm.core.builders;
 
-import io.crm.core.Cacher;
-import io.crm.core.Interceptor;
-import io.crm.core.ReadTier;
-import io.crm.core.Reader;
+import io.crm.core.*;
+import io.crm.core.noop.*;
+
+import java.util.Objects;
 
 /**
  * Created by xiongxl in 2022/3/12
  */
-public class ReadTierBuilder<K, V> extends ReadTier1Builder<K, V, Void> {
+public class ReadTierBuilder<K, V> implements Builder<ReadTier<K, V>> {
+    private Reader<K, V> reader = NoopReader.get();
+    private Cacher<K, V> cacher = NoopCacher.get();
+    private Interceptor<K, V> interceptor = NoopInterceptor.get();
 
     private ReadTierBuilder() {
         super();
@@ -19,26 +22,25 @@ public class ReadTierBuilder<K, V> extends ReadTier1Builder<K, V, Void> {
     }
 
     public ReadTierBuilder<K, V> withReader(Reader<K, V> reader) {
-        super.withReader(reader.toReader1());
+        Objects.requireNonNull(reader);
+        this.reader = reader;
         return this;
     }
 
     public ReadTierBuilder<K, V> withCacher(Cacher<K, V> cacher) {
-        super.withCacher(cacher.toCacher1());
+        Objects.requireNonNull(cacher);
+        this.cacher = cacher;
         return this;
     }
 
     public ReadTierBuilder<K, V> withInterceptor(Interceptor<K, V> interceptor) {
-        super.withInterceptor(interceptor.toInterceptor1());
+        Objects.requireNonNull(interceptor);
+        this.interceptor = interceptor;
         return this;
     }
 
     @Override
     public ReadTier<K, V> build() {
-        return new ReadTier<>(
-                reader.toReader(),
-                cacher.toCacher(),
-                interceptor.toInterceptor()
-        );
+        return new ReadTier<>(reader, cacher, interceptor);
     }
 }

@@ -30,13 +30,14 @@ public class ReadCrm1<K, V, A> {
     private Future<V> read(int i, K key, A arg) {
         if (i >= readTiers.size()) return Future.succeededFuture();
         ReadTier1<K, V, A> tier = readTiers.get(i);
-        return tier.getReader().read(key, arg).compose(v -> v != null ? cache(i - 1, key, v, arg) : read(i + 1, key, arg));
+        return tier.getReader().read(key, arg).compose(
+                v -> v != null ? cache(i - 1, key, v, arg) : read(i + 1, key, arg)
+        );
     }
 
     private Future<V> cache(int i, K key, V value, A arg) {
         if (i < 0) return Future.succeededFuture(value);
         ReadTier1<K, V, A> tier = readTiers.get(i);
-        if (tier.getCacher() == null) return cache(i - 1, key, value, arg);
         if (!tier.getInterceptor().intercept(key, value, arg)) return cache(i - 1, key, value, arg);
         return tier.getCacher().cache(key, value, arg).compose(v -> cache(i - 1, key, v, arg));
     }

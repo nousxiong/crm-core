@@ -1,5 +1,7 @@
 package io.crm.core;
 
+import io.crm.core.noop.NoopArg;
+
 /**
  * Created by xiongxl in 2022/3/12
  * 值拦截器，用于对值更新（缓存/存储）之前进行拦截
@@ -17,7 +19,7 @@ public interface Interceptor<K, V> {
      */
     Boolean intercept(K key, V value);
 
-    default Interceptor1<K, V, Void> toInterceptor1() {
+    default Interceptor1<K, V, NoopArg> toInterceptor1() {
         return (key, value, arg) -> this.intercept(key, value);
     }
 }

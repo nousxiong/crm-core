@@ -1,5 +1,6 @@
 package io.crm.core;
 
+import io.crm.core.noop.NoopArg;
 import io.vertx.core.Future;
 
 import java.util.ArrayList;
@@ -11,9 +12,10 @@ import java.util.List;
  * @param <K>
  * @param <V>
  */
-public class ReadCrm<K, V> extends ReadCrm1<K, V, Void> {
+public class ReadCrm<K, V> extends ReadCrm1<K, V, NoopArg> {
 
     public ReadCrm() {
+        super();
     }
 
     public ReadCrm(List<ReadTier<K, V>> readTiers) {
@@ -26,6 +28,6 @@ public class ReadCrm<K, V> extends ReadCrm1<K, V, Void> {
      * @return Future值
      */
     public Future<V> read(K key) {
-        return super.read(key, null);
+        return super.read(key, NoopArg.get());
     }
 }
