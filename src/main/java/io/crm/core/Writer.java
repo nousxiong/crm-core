@@ -19,7 +19,10 @@ public interface Writer<K, V> {
      */
     Future<V> write(K key, V value);
 
-    default Writer1<K, V, NoopArg> toWriter1() {
-        return (key, value, arg) -> this.write(key, value);
+    static <K, V> Writer1<K, V, NoopArg> toWriter1(Writer<K, V> writer) {
+        if (writer == null) {
+            return null;
+        }
+        return (key, value, arg) -> writer.write(key, value);
     }
 }

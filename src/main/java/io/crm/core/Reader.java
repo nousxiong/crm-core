@@ -18,7 +18,10 @@ public interface Reader<K, V> {
      */
     Future<V> read(K key);
 
-    default Reader1<K, V, NoopArg> toReader1() {
-        return (key, arg) -> this.read(key);
+    static <K, V> Reader1<K, V, NoopArg> toReader1(Reader<K, V> reader) {
+        if (reader == null) {
+            return null;
+        }
+        return (key, arg) -> reader.read(key);
     }
 }

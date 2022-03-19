@@ -1,10 +1,5 @@
 package io.crm.core;
 
-import io.crm.core.noop.NoopInterceptor1;
-import io.crm.core.noop.NoopWriter1;
-
-import java.util.Objects;
-
 /**
  * Created by xiongxl in 2022/3/15
  */
@@ -21,16 +16,14 @@ public class WriteTier1<K, V, A> {
     }
 
     public WriteTier1() {
-        this(NoopWriter1.get(), NoopInterceptor1.get());
+        this(null, null);
     }
 
     public WriteTier1(Writer1<K, V, A> writer) {
-        this(writer, NoopInterceptor1.get());
+        this(writer, null);
     }
 
     public WriteTier1(Writer1<K, V, A> writer, Interceptor1<K, V, A> interceptor) {
-        Objects.requireNonNull(writer);
-        Objects.requireNonNull(interceptor);
         this.writer = writer;
         this.interceptor = interceptor;
     }

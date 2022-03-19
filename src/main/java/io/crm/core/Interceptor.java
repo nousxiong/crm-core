@@ -19,7 +19,10 @@ public interface Interceptor<K, V> {
      */
     Boolean intercept(K key, V value);
 
-    default Interceptor1<K, V, NoopArg> toInterceptor1() {
-        return (key, value, arg) -> this.intercept(key, value);
+    static <K, V> Interceptor1<K, V, NoopArg> toInterceptor1(Interceptor<K, V> interceptor) {
+        if (interceptor == null) {
+            return null;
+        }
+        return (key, value, arg) -> interceptor.intercept(key, value);
     }
 }

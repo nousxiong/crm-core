@@ -15,7 +15,7 @@ public class ReadTier1Builder<K, V, A> implements Builder<ReadTier1<K, V, A>> {
     private Cacher1<K, V, A> cacher = NoopCacher1.get();
     private Interceptor1<K, V, A> interceptor = NoopInterceptor1.get();
 
-    protected ReadTier1Builder() {
+    private ReadTier1Builder() {
     }
 
     public static <K, V, A> ReadTier1Builder<K, V, A> newBuilder(Class<K> keyType, Class<V> valueType, Class<A> argType) {

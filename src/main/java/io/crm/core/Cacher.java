@@ -19,7 +19,10 @@ public interface Cacher<K, V> {
      */
     Future<V> cache(K key, V value);
 
-    default Cacher1<K, V, NoopArg> toCacher1() {
-        return (key, value, arg) -> this.cache(key, value);
+    static <K, V> Cacher1<K, V, NoopArg> toCacher1(Cacher<K, V> cacher) {
+        if (cacher == null) {
+            return null;
+        }
+        return (key, value, arg) -> cacher.cache(key, value);
     }
 }
