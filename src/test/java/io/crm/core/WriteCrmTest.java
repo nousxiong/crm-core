@@ -47,7 +47,10 @@ class WriteCrmTest {
                 )
                 .withWriteTier(
                         WriteTierBuilder.newBuilder(String.class, MyValue.class)
-                                .withWriter((key, value) -> Future.succeededFuture(cacheSource.compute(key, (ck, cv) -> value)))
+                                .withWriter((key, value) -> {
+                                    cacheSource.remove(key);
+                                    return Future.succeededFuture(value);
+                                })
                                 .build()
                 )
                 .build();
@@ -84,7 +87,7 @@ class WriteCrmTest {
             String key = keys.get(index);
             MyValue value = values.get(index);
             assertEquals(value, wcrm.write(key, value).result());
-            assertEquals(value, cacheSource.get(key));
+            assertNull(cacheSource.get(key));
             assertEquals(value, sysOfRecSource.get(key));
         }
     }
