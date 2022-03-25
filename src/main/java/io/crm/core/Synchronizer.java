@@ -7,5 +7,10 @@ import io.vertx.core.Future;
  */
 @FunctionalInterface
 public interface Synchronizer<K> {
+    /**
+     * 获取锁
+     * @param key 键
+     * @return 返回带有锁
+     */
     Future<Locker> acquire(K key);
 }
