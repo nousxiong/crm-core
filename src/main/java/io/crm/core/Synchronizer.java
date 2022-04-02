@@ -1,5 +1,6 @@
 package io.crm.core;
 
+import io.crm.core.noop.NoopArg;
 import io.vertx.core.Future;
 
 /**
@@ -10,7 +11,14 @@ public interface Synchronizer<K> {
     /**
      * 获取锁
      * @param key 键
-     * @return 返回带有锁
+     * @return 返回锁
      */
     Future<Locker> acquire(K key);
+
+    static <K> Synchronizer1<K, NoopArg> toSynchronizer1(Synchronizer<K> synchronizer) {
+        if (synchronizer == null) {
+            return null;
+        }
+        return (key, arg) -> synchronizer.acquire(key);
+    }
 }
