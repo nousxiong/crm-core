@@ -1,7 +1,7 @@
 package io.crm.core.noop;
 
 import io.crm.core.Cacher1;
-import io.vertx.core.Future;
+import io.smallrye.mutiny.Uni;
 
 /**
  * Created by xiongxl on 2022/3/16
@@ -30,7 +30,7 @@ public class NoopCacher1<K, V, A> implements Cacher1<K, V, A> {
     }
 
     @Override
-    public Future<V> cache(K key, V value, A arg) {
-        return Future.succeededFuture(expected ? expectedValue : value);
+    public Uni<V> cache(K key, V value, A arg) {
+        return Uni.createFrom().item(expected ? expectedValue : value);
     }
 }

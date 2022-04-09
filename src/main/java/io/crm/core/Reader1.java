@@ -1,6 +1,6 @@
 package io.crm.core;
 
-import io.vertx.core.Future;
+import io.smallrye.mutiny.Uni;
 
 /**
  * Created by xiongxl in 2022/3/9
@@ -18,5 +18,5 @@ public interface Reader1<K, V, A> {
      * @param arg 参数
      * @return 返回带有值的Future，如果带的值null表示指定的键对应的值不存在
      */
-    Future<V> read(K key, A arg);
+    Uni<V> read(K key, A arg);
 }

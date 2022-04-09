@@ -9,13 +9,13 @@ class NoopReaderTest {
 
     @Test
     void get() {
-        assertNull(NoopReader.get().read(1).result());
+        assertNull(NoopReader.get().read(1).await().indefinitely());
     }
 
     @Test
     void make() {
         String value = "myValue";
-        assertEquals(value, NoopReader.make(value).read(1).result());
-        assertEquals(value, NoopReader.make(value).read(2).result());
+        assertEquals(value, NoopReader.make(value).read(1).await().indefinitely());
+        assertEquals(value, NoopReader.make(value).read(2).await().indefinitely());
     }
 }

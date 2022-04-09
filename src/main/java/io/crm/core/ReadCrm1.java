@@ -1,6 +1,6 @@
 package io.crm.core;
 
-import io.vertx.core.Future;
+import io.smallrye.mutiny.Uni;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,40 +28,63 @@ public class ReadCrm1<K, V, A> {
         this.readTiers.addAll(readTiers);
     }
 
-    public Future<V> read(K key, A arg) {
+    public Uni<V> read(K key, A arg) {
         if (readTiers.isEmpty()) {
-            return Future.succeededFuture();
+            return Uni.createFrom().nullItem();
         }
         return read(0, key, arg);
     }
 
-    private Future<V> read(int i, K key, A arg) {
+    private Uni<V> read(int i, K key, A arg) {
         if (i >= readTiers.size()) {
-            return Future.succeededFuture();
+            return Uni.createFrom().nullItem();
         }
+
         ReadTier1<K, V, A> tier = readTiers.get(i);
         Reader1<K, V, A> reader = tier.getReader();
-        if (reader == null) {
-            return read(i + 1, key, arg);
+        Synchronizer1<K, A> synchronizer = tier.getSynchronizer1();
+
+        if (synchronizer == null) {
+            if (reader == null) {
+                return read(i + 1, key, arg);
+            } else {
+                return reader.read(key, arg)
+                        .onItem().ifNotNull().transformToUni(v -> cache(i - 1, key, v, arg))
+                        .onItem().ifNull().switchTo(() -> read(i + 1, key, arg));
+            }
+        } else {
+            return synchronizer.acquire(key, arg)
+                    .onItem().transformToUni(lk -> {
+                        if (reader == null) {
+                            return read(i + 1, key, arg)
+                                    .onItem().call(lk::release);
+                        } else {
+                            return reader.read(key, arg)
+                                    .onItem().ifNotNull().transformToUni(v -> cache(i - 1, key, v, arg))
+                                    .onItem().ifNull().switchTo(() -> read(i + 1, key, arg))
+                                    .onItem().call(lk::release);
+                        }
+                    });
         }
-        return reader.read(key, arg).compose(
-                v -> v != null ? cache(i - 1, key, v, arg) : read(i + 1, key, arg)
-        );
     }
 
-    private Future<V> cache(int i, K key, V value, A arg) {
+    private Uni<V> cache(int i, K key, V value, A arg) {
         if (i < 0) {
-            return Future.succeededFuture(value);
+            return Uni.createFrom().item(value);
         }
+
         ReadTier1<K, V, A> tier = readTiers.get(i);
         Interceptor1<K, V, A> interceptor = tier.getInterceptor();
+
         if (interceptor != null && !interceptor.intercept(key, value, arg)) {
             return cache(i - 1, key, value, arg);
         }
+
         Cacher1<K, V, A> cacher = tier.getCacher();
         if (cacher == null) {
             return cache(i - 1, key, value, arg);
         }
-        return cacher.cache(key, value, arg).compose(v -> cache(i - 1, key, v, arg));
+        return cacher.cache(key, value, arg)
+                .onItem().transformToUni(v -> cache(i - 1, key, v, arg));
     }
 }

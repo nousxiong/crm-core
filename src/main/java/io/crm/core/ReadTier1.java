@@ -43,7 +43,12 @@ public class ReadTier1<K, V, A> {
         this(reader, cacher, interceptor, null);
     }
 
-    public ReadTier1(Reader1<K, V, A> reader, Cacher1<K, V, A> cacher, Interceptor1<K, V, A> interceptor, Synchronizer1<K, A> synchronizer) {
+    public ReadTier1(
+            Reader1<K, V, A> reader,
+            Cacher1<K, V, A> cacher,
+            Interceptor1<K, V, A> interceptor,
+            Synchronizer1<K, A> synchronizer
+    ) {
         this.reader = reader;
         this.cacher = cacher;
         this.interceptor = interceptor;

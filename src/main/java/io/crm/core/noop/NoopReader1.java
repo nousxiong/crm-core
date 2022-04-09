@@ -1,7 +1,7 @@
 package io.crm.core.noop;
 
 import io.crm.core.Reader1;
-import io.vertx.core.Future;
+import io.smallrye.mutiny.Uni;
 
 /**
  * Created by xiongxl on 2022/3/16
@@ -28,7 +28,7 @@ public class NoopReader1<K, V, A> implements Reader1<K, V, A> {
     }
 
     @Override
-    public Future<V> read(K key, A arg) {
-        return Future.succeededFuture(expectedValue);
+    public Uni<V> read(K key, A arg) {
+        return Uni.createFrom().item(expectedValue);
     }
 }

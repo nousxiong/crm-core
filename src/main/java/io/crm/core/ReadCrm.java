@@ -1,7 +1,7 @@
 package io.crm.core;
 
 import io.crm.core.noop.NoopArg;
-import io.vertx.core.Future;
+import io.smallrye.mutiny.Uni;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,7 +27,7 @@ public class ReadCrm<K, V> extends ReadCrm1<K, V, NoopArg> {
      * @param key 键
      * @return Future值
      */
-    public Future<V> read(K key) {
+    public Uni<V> read(K key) {
         return super.read(key, NoopArg.get());
     }
 }

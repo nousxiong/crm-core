@@ -1,6 +1,6 @@
 package io.crm.core;
 
-import io.vertx.core.Future;
+import io.smallrye.mutiny.Uni;
 
 /**
  * Created by xiongxl in 2022/3/25
@@ -11,5 +11,5 @@ public interface Locker {
     /**
      * 释放锁
      */
-    Future<Void> release();
+    Uni<Void> release();
 }

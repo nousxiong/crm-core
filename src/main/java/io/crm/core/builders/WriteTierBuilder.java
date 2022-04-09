@@ -1,12 +1,11 @@
 package io.crm.core.builders;
 
 import io.crm.core.Interceptor;
-import io.crm.core.Writer;
+import io.crm.core.Synchronizer;
 import io.crm.core.WriteTier;
+import io.crm.core.Writer;
 import io.crm.core.noop.NoopInterceptor;
 import io.crm.core.noop.NoopWriter;
-
-import java.util.Objects;
 
 /**
  * Created by xiongxl in 2022/3/15
@@ -14,6 +13,7 @@ import java.util.Objects;
 public class WriteTierBuilder<K, V> implements Builder<WriteTier<K, V>> {
     private Writer<K, V> writer = NoopWriter.get();
     private Interceptor<K, V> interceptor = NoopInterceptor.get();
+    private Synchronizer<K> synchronizer;
 
     private WriteTierBuilder() {
     }
@@ -23,19 +23,22 @@ public class WriteTierBuilder<K, V> implements Builder<WriteTier<K, V>> {
     }
 
     public WriteTierBuilder<K, V> withWriter(Writer<K, V> writer) {
-        Objects.requireNonNull(writer);
         this.writer = writer;
         return this;
     }
 
     public WriteTierBuilder<K, V> withInterceptor(Interceptor<K, V> interceptor) {
-        Objects.requireNonNull(interceptor);
         this.interceptor = interceptor;
+        return this;
+    }
+
+    public WriteTierBuilder<K, V> withSynchronizer(Synchronizer<K> synchronizer) {
+        this.synchronizer = synchronizer;
         return this;
     }
 
     @Override
     public WriteTier<K, V> build() {
-        return new WriteTier<>(writer, interceptor);
+        return new WriteTier<>(writer, interceptor, synchronizer);
     }
 }

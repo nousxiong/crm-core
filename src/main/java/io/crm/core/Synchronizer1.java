@@ -1,6 +1,6 @@
 package io.crm.core;
 
-import io.vertx.core.Future;
+import io.smallrye.mutiny.Uni;
 
 /**
  * Created by xiongxl on 2022/4/2
@@ -13,5 +13,5 @@ public interface Synchronizer1<K, A> {
      * @param arg 参数
      * @return 返回锁
      */
-    Future<Locker> acquire(K key, A arg);
+    Uni<Locker> acquire(K key, A arg);
 }

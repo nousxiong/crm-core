@@ -3,7 +3,7 @@ package io.crm.core;
 import io.crm.core.builders.ReadCrm1Builder;
 import io.crm.core.builders.ReadTier1Builder;
 import io.crm.core.noop.NoopInterceptor1;
-import io.vertx.core.Future;
+import io.smallrye.mutiny.Uni;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
@@ -111,9 +111,9 @@ class ReadCrm1Test {
                                     if (cvalue != null) {
                                         cvalue.updateFrom(FromType.CACHE);
                                     }
-                                    return Future.succeededFuture(cvalue);
+                                    return Uni.createFrom().item(cvalue);
                                 })
-                                .withCacher((key, value, arg) -> Future.succeededFuture(cacheSource.compute(key, (ck, cv) -> value)))
+                                .withCacher((key, value, arg) -> Uni.createFrom().item(cacheSource.compute(key, (ck, cv) -> value)))
                                 .withInterceptor(picker)
                                 .build()
                 )
@@ -124,7 +124,7 @@ class ReadCrm1Test {
                                     if (sorValue != null) {
                                         sorValue.updateFrom(FromType.SOR);
                                     }
-                                    return Future.succeededFuture(sorValue);
+                                    return Uni.createFrom().item(sorValue);
                                 })
                                 .build()
                 )
@@ -167,8 +167,8 @@ class ReadCrm1Test {
         for (int index : indexs) {
             String key = keys.get(index);
             MyArg arg = args.get(index);
-            assertEquals(new MyValue(key.hashCode(), key, FromType.SOR), rcrm.read(key, arg).result());
-            assertEquals(new MyValue(key.hashCode(), key, FromType.CACHE), rcrm.read(key, arg).result());
+            assertEquals(new MyValue(key.hashCode(), key, FromType.SOR), rcrm.read(key, arg).await().indefinitely());
+            assertEquals(new MyValue(key.hashCode(), key, FromType.CACHE), rcrm.read(key, arg).await().indefinitely());
         }
     }
 
@@ -181,7 +181,9 @@ class ReadCrm1Test {
 
         // ReadThrough + 只选择key的hashCode能整除2的value进行缓存
         ReadCrm1<String, MyValue, MyArg> rcrm = rcrmOfCachePick(
-                cacheSource, sysOfRecSource, (k, v, a) -> Math.abs(k.hashCode()) % 2 == 0
+                cacheSource,
+                sysOfRecSource,
+                (k, v, a) -> Math.abs(k.hashCode()) % 2 == 0
         );
 
         // 准备测试数据
@@ -210,12 +212,12 @@ class ReadCrm1Test {
         for (int index : indexs) {
             String key = keys.get(index);
             MyArg arg = args.get(index);
-            assertEquals(new MyValue(key.hashCode(), key, FromType.SOR), rcrm.read(key, arg).result());
+            assertEquals(new MyValue(key.hashCode(), key, FromType.SOR), rcrm.read(key, arg).await().indefinitely());
             FromType fromType = FromType.SOR;
             if (Math.abs(key.hashCode()) % 2 == 0) {
                 fromType = FromType.CACHE;
             }
-            assertEquals(new MyValue(key.hashCode(), key, fromType), rcrm.read(key, arg).result());
+            assertEquals(new MyValue(key.hashCode(), key, fromType), rcrm.read(key, arg).await().indefinitely());
         }
     }
 }

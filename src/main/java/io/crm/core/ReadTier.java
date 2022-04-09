@@ -22,4 +22,18 @@ public class ReadTier<K, V> extends ReadTier1<K, V, NoopArg> {
     public ReadTier(Reader<K, V> reader, Cacher<K, V> cacher, Interceptor<K, V> interceptor) {
         super(Reader.toReader1(reader), Cacher.toCacher1(cacher), Interceptor.toInterceptor1(interceptor));
     }
+
+    public ReadTier(
+            Reader<K, V> reader,
+            Cacher<K, V> cacher,
+            Interceptor<K, V> interceptor,
+            Synchronizer<K> synchronizer
+    ) {
+        super(
+                Reader.toReader1(reader),
+                Cacher.toCacher1(cacher),
+                Interceptor.toInterceptor1(interceptor),
+                Synchronizer.toSynchronizer1(synchronizer)
+        );
+    }
 }

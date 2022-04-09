@@ -9,15 +9,15 @@ class NoopCacherTest {
     @Test
     void get() {
         String value = "dummy";
-        assertEquals(value, NoopCacher.get().cache(1, value).result());
+        assertEquals(value, NoopCacher.get().cache(1, value).await().indefinitely());
     }
 
     @Test
     void make() {
         String expected = "expected";
-        assertEquals(expected, NoopCacher.make(expected).cache(1, "value").result());
-        assertEquals(expected, NoopCacher.make(expected).cache(2, "value").result());
-        assertNull(NoopCacher.make(null).cache(1, "value").result());
-        assertNull(NoopCacher.make(null).cache(2, "value").result());
+        assertEquals(expected, NoopCacher.make(expected).cache(1, "value").await().indefinitely());
+        assertEquals(expected, NoopCacher.make(expected).cache(2, "value").await().indefinitely());
+        assertNull(NoopCacher.make(null).cache(1, "value").await().indefinitely());
+        assertNull(NoopCacher.make(null).cache(2, "value").await().indefinitely());
     }
 }

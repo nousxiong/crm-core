@@ -1,6 +1,6 @@
 package io.crm.core;
 
-import io.vertx.core.Future;
+import io.smallrye.mutiny.Uni;
 
 /**
  * Created by xiongxl in 2022/3/9
@@ -19,5 +19,5 @@ public interface Cacher1<K, V, A> {
      * @param arg 参数
      * @return 返回带有最新值的Future，这个最新值可能是其它并发write/cache操作进行的结果（比如比当前write时指定的值要新）
      */
-    Future<V> cache(K key, V value, A arg);
+    Uni<V> cache(K key, V value, A arg);
 }

@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 buildscript {
     repositories {
         maven {
@@ -9,7 +11,7 @@ buildscript {
 }
 
 plugins {
-//    kotlin("jvm") version "1.6.10"
+    kotlin("jvm") version "1.6.10"
     java
 }
 
@@ -21,12 +23,12 @@ java {
     targetCompatibility = JavaVersion.VERSION_11
 }
 
-//tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-//    kotlinOptions {
-//        freeCompilerArgs = listOf("-Xjsr305=strict")
-//        jvmTarget = "11"
-//    }
-//}
+tasks.withType<KotlinCompile> {
+    kotlinOptions {
+        freeCompilerArgs = listOf("-Xjsr305=strict")
+        jvmTarget = "11"
+    }
+}
 
 tasks.withType<JavaCompile> {
     options.encoding = "UTF-8"
@@ -44,9 +46,11 @@ val vertxVersion: String by project
 val slf4jVersion: String by project
 
 dependencies {
-//    implementation(kotlin("stdlib"))
+    implementation(kotlin("stdlib"))
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0")
     implementation("org.slf4j:slf4j-api:$slf4jVersion")
     implementation("org.slf4j:slf4j-simple:$slf4jVersion")
+    implementation("io.smallrye.reactive:mutiny:1.4.0")
     implementation("io.vertx:vertx-core:$vertxVersion")
 //    implementation("io.vertx:vertx-lang-kotlin:$vertxVersion")
 //    implementation("io.vertx:vertx-lang-kotlin-coroutines:$vertxVersion")

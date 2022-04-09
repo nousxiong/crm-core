@@ -3,7 +3,7 @@ package io.crm.core;
 import io.crm.core.builders.ReadCrmBuilder;
 import io.crm.core.builders.ReadTierBuilder;
 import io.crm.core.noop.NoopInterceptor;
-import io.vertx.core.Future;
+import io.smallrye.mutiny.Uni;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
@@ -15,6 +15,25 @@ class ReadCrmTest {
         NONE,
         CACHE,
         SOR
+    }
+
+    private static class RcrmLocker implements Locker {
+        public int getLock() {
+            return lock;
+        }
+
+        private int lock = 0;
+
+        public Locker lock() {
+            lock++;
+            return this;
+        }
+
+        @Override
+        public Uni<Void> release() {
+            lock++;
+            return Uni.createFrom().nullItem();
+        }
     }
 
     private static class MyValue {
@@ -64,7 +83,9 @@ class ReadCrmTest {
             Map<String, MyValue> cacheSource,
             Map<String, MyValue> sysOfRecSource
     ) {
-        return rcrmOfCachePick(cacheSource, sysOfRecSource, NoopInterceptor.get());
+        return rcrmOfCachePick(
+                cacheSource, sysOfRecSource, NoopInterceptor.get(), null, null
+        );
     }
 
     /**
@@ -78,7 +99,9 @@ class ReadCrmTest {
     private ReadCrm<String, MyValue> rcrmOfCachePick(
             Map<String, MyValue> cacheSource,
             Map<String, MyValue> sysOfRecSource,
-            Interceptor<String, MyValue> picker
+            Interceptor<String, MyValue> picker,
+            Synchronizer<String> cacheSyncr,
+            Synchronizer<String> sorSyncr
     ) {
         return ReadCrmBuilder.newBuilder(String.class, MyValue.class)
                 .withReadTier(
@@ -88,10 +111,11 @@ class ReadCrmTest {
                                     if (cvalue != null) {
                                         cvalue.updateFrom(FromType.CACHE);
                                     }
-                                    return Future.succeededFuture(cvalue);
+                                    return Uni.createFrom().item(cvalue);
                                 })
-                                .withCacher((key, value) -> Future.succeededFuture(cacheSource.compute(key, (ck, cv) -> value)))
+                                .withCacher((key, value) -> Uni.createFrom().item(cacheSource.compute(key, (ck, cv) -> value)))
                                 .withInterceptor(picker)
+                                .withSynchronizer(cacheSyncr)
                                 .build()
                 )
                 .withReadTier(
@@ -101,8 +125,9 @@ class ReadCrmTest {
                                     if (sorValue != null) {
                                         sorValue.updateFrom(FromType.SOR);
                                     }
-                                    return Future.succeededFuture(sorValue);
+                                    return Uni.createFrom().item(sorValue);
                                 })
+                                .withSynchronizer(sorSyncr)
                                 .build()
                 )
                 .build();
@@ -141,8 +166,8 @@ class ReadCrmTest {
         Collections.shuffle(indexs);
         for (int index : indexs) {
             String key = keys.get(index);
-            assertEquals(new MyValue(key.hashCode(), key, FromType.SOR), rcrm.read(key).result());
-            assertEquals(new MyValue(key.hashCode(), key, FromType.CACHE), rcrm.read(key).result());
+            assertEquals(new MyValue(key.hashCode(), key, FromType.SOR), rcrm.read(key).await().indefinitely());
+            assertEquals(new MyValue(key.hashCode(), key, FromType.CACHE), rcrm.read(key).await().indefinitely());
         }
     }
 
@@ -152,9 +177,20 @@ class ReadCrmTest {
         HashMap<String, MyValue> cacheSource = new HashMap<>();
         // 模拟SoR源
         HashMap<String, MyValue> sysOfRecSource = new HashMap<>();
+        RcrmLocker cacheLocker = new RcrmLocker();
+        RcrmLocker sorLocker = new RcrmLocker();
+
+        assertEquals(0, cacheLocker.getLock());
+        assertEquals(0, sorLocker.getLock());
 
         // ReadThrough + 只选择key的hashCode能整除2的value进行缓存
-        ReadCrm<String, MyValue> rcrm = rcrmOfCachePick(cacheSource, sysOfRecSource, (k, v) -> Math.abs(k.hashCode()) % 2 == 0);
+        ReadCrm<String, MyValue> rcrm = rcrmOfCachePick(
+                cacheSource,
+                sysOfRecSource,
+                (k, v) -> Math.abs(k.hashCode()) % 2 == 0,
+                (k) -> Uni.createFrom().item(cacheLocker.lock()),
+                (k) -> Uni.createFrom().item(sorLocker.lock())
+        );
 
         // 准备测试数据
         final int tcnt = 10;
@@ -177,14 +213,27 @@ class ReadCrmTest {
             indexs.add(i);
         }
         Collections.shuffle(indexs);
+        int i = 0;
+        int sorLock = 0;
         for (int index : indexs) {
             String key = keys.get(index);
-            assertEquals(new MyValue(key.hashCode(), key, FromType.SOR), rcrm.read(key).result());
             FromType fromType = FromType.SOR;
             if (Math.abs(key.hashCode()) % 2 == 0) {
                 fromType = FromType.CACHE;
             }
-            assertEquals(new MyValue(key.hashCode(), key, fromType), rcrm.read(key).result());
+
+            assertEquals(new MyValue(key.hashCode(), key, FromType.SOR), rcrm.read(key).await().indefinitely());
+            sorLock += 2;
+            assertEquals(i * 4 + 2, cacheLocker.getLock());
+            assertEquals(sorLock, sorLocker.getLock());
+
+            assertEquals(new MyValue(key.hashCode(), key, fromType), rcrm.read(key).await().indefinitely());
+            if (fromType == FromType.SOR) {
+                sorLock += 2;
+            }
+            assertEquals(i * 4 + 4, cacheLocker.getLock());
+            assertEquals(sorLock, sorLocker.getLock());
+            i++;
         }
     }
 }

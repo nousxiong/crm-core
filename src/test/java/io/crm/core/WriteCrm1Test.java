@@ -1,7 +1,7 @@
 package io.crm.core;
 
-import io.crm.core.builders.WriteCrmBuilder;
-import io.crm.core.builders.WriteTierBuilder;
+import io.crm.core.builders.WriteCrm1Builder;
+import io.crm.core.builders.WriteTier1Builder;
 import io.smallrye.mutiny.Uni;
 import org.junit.jupiter.api.Test;
 
@@ -10,26 +10,7 @@ import java.util.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-class WriteCrmTest {
-
-    private static class WcrmLocker implements Locker {
-        public int getLock() {
-            return lock;
-        }
-
-        private int lock = 0;
-
-        public Locker lock() {
-            lock++;
-            return this;
-        }
-
-        @Override
-        public Uni<Void> release() {
-            lock++;
-            return Uni.createFrom().nullItem();
-        }
-    }
+class WriteCrm1Test {
 
     private static class MyValue {
         int id;
@@ -55,31 +36,50 @@ class WriteCrmTest {
         }
     }
 
-    private WriteCrm<String, MyValue> wcrmOfWriteThrough(
+    private static class MyArg {
+        int len;
+        String options;
+
+        public MyArg(int len, String options) {
+            this.len = len;
+            this.options = options;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            MyArg myArg = (MyArg) o;
+            return len == myArg.len && options.equals(myArg.options);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(len, options);
+        }
+    }
+
+    private WriteCrm1<String, MyValue, MyArg> wcrmOfWriteThrough(
             Map<String, MyValue> cacheSource,
             Map<String, MyValue> sysOfRecSource,
-            Interceptor<String, MyValue> picker,
-            Synchronizer<String> cacheSyncr,
-            Synchronizer<String> sorSyncr
+            Interceptor1<String, MyValue, MyArg> picker
     ) {
-        return WriteCrmBuilder.newBuilder(String.class, MyValue.class)
+        return WriteCrm1Builder.newBuilder(String.class, MyValue.class, MyArg.class)
                 .withWriteTier(
-                        WriteTierBuilder.newBuilder(String.class, MyValue.class)
-                                .withWriter((key, value) -> Uni.createFrom().item(
+                        WriteTier1Builder.newBuilder(String.class, MyValue.class, MyArg.class)
+                                .withWriter((key, value, arg) -> Uni.createFrom().item(
                                         sysOfRecSource.compute(key, (ck, cv) -> value)
                                 ))
                                 .withInterceptor(picker)
-                                .withSynchronizer(sorSyncr)
                                 .build()
                 )
                 .withWriteTier(
-                        WriteTierBuilder.newBuilder(String.class, MyValue.class)
-                                .withWriter((key, value) -> {
+                        WriteTier1Builder.newBuilder(String.class, MyValue.class, MyArg.class)
+                                .withWriter((key, value, arg) -> {
                                     cacheSource.remove(key);
                                     return Uni.createFrom().item(value);
                                 })
                                 .withInterceptor(picker)
-                                .withSynchronizer(cacheSyncr)
                                 .build()
                 )
                 .build();
@@ -91,26 +91,24 @@ class WriteCrmTest {
         HashMap<String, MyValue> cacheSource = new HashMap<>();
         // 模拟SoR源
         HashMap<String, MyValue> sysOfRecSource = new HashMap<>();
-        WcrmLocker cacheLocker = new WcrmLocker();
-        WcrmLocker sorLocker = new WcrmLocker();
 
         // Write Through
-        WriteCrm<String, MyValue> wcrm = wcrmOfWriteThrough(
+        WriteCrm1<String, MyValue, MyArg> wcrm = wcrmOfWriteThrough(
                 cacheSource,
                 sysOfRecSource,
-                (k, v) -> Math.abs(k.hashCode()) % 2 == 0,
-                (k) -> Uni.createFrom().item(cacheLocker.lock()),
-                (k) -> Uni.createFrom().item(sorLocker.lock())
+                (k, v, a) -> Math.abs(k.hashCode()) % 2 == 0
         );
 
         // 准备测试数据
         final int tcnt = 10;
         List<String> keys = new ArrayList<>();
         List<MyValue> values = new ArrayList<>();
+        List<MyArg> args = new ArrayList<>();
         for (int i = 0; i < tcnt; i++) {
             String key = "key-" + i;
             keys.add(key);
             values.add(new MyValue(key.hashCode(), key));
+            args.add(new MyArg(key.length(), "opts-" + key));
         }
 
         // 准备Cache数据
@@ -125,22 +123,19 @@ class WriteCrmTest {
         }
         Collections.shuffle(indexs);
 
-        int locker = 0;
         for (int index : indexs) {
             String key = keys.get(index);
             MyValue value = values.get(index);
-            locker += 2;
+            MyArg arg = args.get(index);
             if (Math.abs(key.hashCode()) % 2 == 0) {
-                assertEquals(value, wcrm.write(key, value).await().indefinitely());
+                assertEquals(value, wcrm.write(key, value, arg).await().indefinitely());
                 assertNull(cacheSource.get(key));
                 assertEquals(value, sysOfRecSource.get(key));
             } else {
-                assertNull(wcrm.write(key, value).await().indefinitely());
+                assertNull(wcrm.write(key, value, arg).await().indefinitely());
                 assertEquals(value, cacheSource.get(key));
                 assertNull(sysOfRecSource.get(key));
             }
-            assertEquals(locker, cacheLocker.getLock());
-            assertEquals(locker, sorLocker.getLock());
         }
     }
 }

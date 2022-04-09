@@ -1,7 +1,7 @@
 package io.crm.core;
 
 import io.crm.core.noop.NoopArg;
-import io.vertx.core.Future;
+import io.smallrye.mutiny.Uni;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,7 +28,7 @@ public class WriteCrm<K, V> extends WriteCrm1<K, V, NoopArg> {
      * @param value 要写入的值
      * @return 返回带有最新值的Future，这个最新值可能是其它并发写入操作的结果
      */
-    public Future<V> write(K key, V value) {
+    public Uni<V> write(K key, V value) {
         return super.write(key, value, NoopArg.get());
     }
 }

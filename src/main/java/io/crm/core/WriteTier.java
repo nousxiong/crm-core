@@ -16,6 +16,14 @@ public class WriteTier<K, V> extends WriteTier1<K, V, NoopArg> {
     }
 
     public WriteTier(Writer<K, V> writer, Interceptor<K, V> interceptor) {
-        super(Writer.toWriter1(writer), Interceptor.toInterceptor1(interceptor));
+        this(writer, interceptor, null);
+    }
+
+    public WriteTier(
+            Writer<K, V> writer,
+            Interceptor<K, V> interceptor,
+            Synchronizer<K> synchronizer
+    ) {
+        super(Writer.toWriter1(writer), Interceptor.toInterceptor1(interceptor), Synchronizer.toSynchronizer1(synchronizer));
     }
 }

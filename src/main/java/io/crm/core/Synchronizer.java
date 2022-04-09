@@ -1,7 +1,7 @@
 package io.crm.core;
 
 import io.crm.core.noop.NoopArg;
-import io.vertx.core.Future;
+import io.smallrye.mutiny.Uni;
 
 /**
  * Created by xiongxl in 2022/3/25
@@ -13,7 +13,7 @@ public interface Synchronizer<K> {
      * @param key 键
      * @return 返回锁
      */
-    Future<Locker> acquire(K key);
+    Uni<Locker> acquire(K key);
 
     static <K> Synchronizer1<K, NoopArg> toSynchronizer1(Synchronizer<K> synchronizer) {
         if (synchronizer == null) {
