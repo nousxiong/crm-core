@@ -14,7 +14,9 @@ class JBuildersTest {
     fun testJBuilders() {
         val rc = rcrm<String, MyValue> {
             tier {
-                reader { Uni.createFrom().item(MyValue(1, "n1")) }
+                reader {
+                    Uni.createFrom().item(MyValue(1, "n1"))
+                }
             }
             tier {
                 reader { Uni.createFrom().item(MyValue(2, "n2")) }
