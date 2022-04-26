@@ -11,7 +11,10 @@ buildscript {
 }
 
 plugins {
+    id("org.springframework.boot") version "2.6.0"
+    id("io.spring.dependency-management") version "1.0.11.RELEASE"
     kotlin("jvm") version "1.6.10"
+    kotlin("plugin.spring") version "1.6.10"
     java
 }
 
@@ -49,7 +52,7 @@ dependencies {
     implementation(kotlin("stdlib"))
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0")
     implementation("org.slf4j:slf4j-api:$slf4jVersion")
-    implementation("org.slf4j:slf4j-simple:$slf4jVersion")
+//    implementation("org.slf4j:slf4j-simple:$slf4jVersion")
     implementation("io.smallrye.reactive:mutiny:1.4.0")
     implementation("io.vertx:vertx-core:$vertxVersion")
 //    implementation("io.vertx:vertx-lang-kotlin:$vertxVersion")
@@ -58,6 +61,8 @@ dependencies {
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
     testImplementation("org.ehcache:ehcache:3.9.9")
     testImplementation("javax.cache:cache-api:1.1.1")
+    testImplementation("org.springframework.boot:spring-boot-starter")
+    testImplementation("org.springframework.boot:spring-boot-autoconfigure")
 }
 
 tasks.getByName<Test>("test") {
