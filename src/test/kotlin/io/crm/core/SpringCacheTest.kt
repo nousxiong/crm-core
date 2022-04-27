@@ -1,10 +1,17 @@
 package io.crm.core
 
+import io.crm.core.kotlin.jbuilders.rcrm
+import io.smallrye.mutiny.Uni
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.boot.CommandLineRunner
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
+import org.springframework.cache.CacheManager
+import org.springframework.cache.annotation.Cacheable
+import org.springframework.cache.annotation.EnableCaching
+import org.springframework.cache.concurrent.ConcurrentMapCacheManager
+import org.springframework.context.annotation.Bean
 import org.springframework.stereotype.Service
 import java.util.concurrent.ThreadLocalRandom
 
@@ -12,14 +19,49 @@ import java.util.concurrent.ThreadLocalRandom
  * Created by xiongxl in 2022/4/26
  */
 @SpringBootApplication
+@EnableCaching
 class SpringCacheTest(private val bookService: BookService) : CommandLineRunner {
     companion object {
         private val logger: Logger = LoggerFactory.getLogger(SpringCacheTest::class.java)
     }
 
+    @Bean
+    fun cacheManager(): CacheManager {
+        return ConcurrentMapCacheManager()
+    }
+
     override fun run(vararg args: String?) {
-        (0 .. 5).forEach { _ ->
-            val isbn = "isbn-${ThreadLocalRandom.current().nextInt(100)}"
+//        testCache()
+        testCrm()
+    }
+
+    private fun testCrm() {
+        val rc = rcrm<String, Book> {
+            tier {
+                reader {
+                    Uni.createFrom().item(bookService.getByIsbn(it))
+                }
+            }
+        }
+        (0 .. 5).forEach { i ->
+            val postfix = if (i % 3 == 0) {
+                ThreadLocalRandom.current().nextInt(100)
+            } else {
+                42
+            }
+            val isbn = "isbn-$postfix"
+            logger.info("$isbn --> ${rc.read(isbn).await().indefinitely()}")
+        }
+    }
+
+    private fun testCache() {
+        (0 .. 5).forEach { i ->
+            val postfix = if (i % 3 == 0) {
+                ThreadLocalRandom.current().nextInt(100)
+            } else {
+                42
+            }
+            val isbn = "isbn-$postfix"
             logger.info("$isbn --> ${bookService.getByIsbn(isbn)}")
         }
     }
@@ -34,6 +76,7 @@ interface BookService {
 
 @Service
 class CacheableBookService : BookService {
+    @Cacheable("books")
     override fun getByIsbn(isbn: String): Book? {
         simulateSlowService()
         return Book(isbn, "Book-title-$isbn")
