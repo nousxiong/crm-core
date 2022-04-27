@@ -1,6 +1,7 @@
 package io.crm.core
 
 import io.crm.core.kotlin.jbuilders.rcrm
+import io.crm.core.kotlin.jbuilders.wcrm
 import io.smallrye.mutiny.Uni
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -8,6 +9,7 @@ import org.springframework.boot.CommandLineRunner
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 import org.springframework.cache.CacheManager
+import org.springframework.cache.annotation.CachePut
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.cache.annotation.EnableCaching
 import org.springframework.cache.concurrent.ConcurrentMapCacheManager
@@ -43,6 +45,13 @@ class SpringCacheTest(private val bookService: BookService) : CommandLineRunner 
                 }
             }
         }
+        val wc = wcrm<String, Book> {
+            tier {
+                writer { _, book ->
+                    Uni.createFrom().item(bookService.updateCache(book))
+                }
+            }
+        }
         (0 .. 5).forEach { i ->
             val postfix = if (i % 3 == 0) {
                 ThreadLocalRandom.current().nextInt(100)
@@ -50,7 +59,9 @@ class SpringCacheTest(private val bookService: BookService) : CommandLineRunner 
                 42
             }
             val isbn = "isbn-$postfix"
-            logger.info("$isbn --> ${rc.read(isbn).await().indefinitely()}")
+            logger.info("r $isbn --> ${rc.read(isbn).await().indefinitely()}")
+            logger.info("w $isbn --> ${wc.write(isbn, Book(isbn, "Book-$isbn")).await().indefinitely()}")
+            logger.info("r $isbn --> ${rc.read(isbn).await().indefinitely()}")
         }
     }
 
@@ -72,6 +83,7 @@ data class Book(val isbn: String, val title: String)
 
 interface BookService {
     fun getByIsbn(isbn: String): Book?
+    fun updateCache(book: Book): Book
 }
 
 @Service
@@ -80,6 +92,12 @@ class CacheableBookService : BookService {
     override fun getByIsbn(isbn: String): Book? {
         simulateSlowService()
         return Book(isbn, "Book-title-$isbn")
+    }
+
+    @CachePut(value = ["books"], key = "#book.isbn")
+    override fun updateCache(book: Book): Book {
+        simulateSlowService()
+        return book
     }
 
     // Don't do this at home
