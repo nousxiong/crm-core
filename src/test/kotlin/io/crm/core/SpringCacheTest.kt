@@ -12,8 +12,12 @@ import org.springframework.cache.CacheManager
 import org.springframework.cache.annotation.CachePut
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.cache.annotation.EnableCaching
-import org.springframework.cache.concurrent.ConcurrentMapCacheManager
+import org.springframework.cache.annotation.ProxyCachingConfiguration
+import org.springframework.cache.caffeine.CaffeineCacheManager
+import org.springframework.cache.interceptor.CacheInterceptor
+import org.springframework.cache.interceptor.CacheOperationSource
 import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
 import org.springframework.stereotype.Service
 import java.util.concurrent.ThreadLocalRandom
 
@@ -29,7 +33,8 @@ class SpringCacheTest(private val bookService: BookService) : CommandLineRunner 
 
     @Bean
     fun cacheManager(): CacheManager {
-        return ConcurrentMapCacheManager()
+//        return ConcurrentMapCacheManager()
+        return CaffeineCacheManager()
     }
 
     override fun run(vararg args: String?) {
@@ -103,6 +108,22 @@ class CacheableBookService : BookService {
     // Don't do this at home
     private fun simulateSlowService() {
         Thread.sleep(2000L)
+    }
+}
+
+@Configuration(proxyBeanMethods = false)
+class MyProxyCachingConfiguration : ProxyCachingConfiguration() {
+    companion object {
+        private val logger = LoggerFactory.getLogger(MyProxyCachingConfiguration::class.java)
+    }
+
+    @Bean
+    override fun cacheInterceptor(cacheOperationSource: CacheOperationSource): CacheInterceptor {
+        val interceptor = CacheInterceptor()
+        interceptor.configure(errorHandler, keyGenerator, cacheResolver, cacheManager)
+        interceptor.cacheOperationSource = cacheOperationSource
+        logger.info("${this::class.simpleName} cacheInterceptor")
+        return interceptor
     }
 }
 

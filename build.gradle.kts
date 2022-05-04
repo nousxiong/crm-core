@@ -64,6 +64,7 @@ dependencies {
 //    testImplementation("org.springframework.boot:spring-boot-starter")
     testImplementation("org.springframework.boot:spring-boot-autoconfigure")
     testImplementation("org.springframework.boot:spring-boot-starter-cache")
+    testImplementation("com.github.ben-manes.caffeine:caffeine:3.1.0")
 }
 
 tasks.getByName<Test>("test") {
