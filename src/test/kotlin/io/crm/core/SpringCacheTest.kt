@@ -12,12 +12,8 @@ import org.springframework.cache.CacheManager
 import org.springframework.cache.annotation.CachePut
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.cache.annotation.EnableCaching
-import org.springframework.cache.annotation.ProxyCachingConfiguration
-import org.springframework.cache.caffeine.CaffeineCacheManager
-import org.springframework.cache.interceptor.CacheInterceptor
-import org.springframework.cache.interceptor.CacheOperationSource
+import org.springframework.cache.concurrent.ConcurrentMapCacheManager
 import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
 import org.springframework.stereotype.Service
 import java.util.concurrent.ThreadLocalRandom
 
@@ -33,8 +29,8 @@ class SpringCacheTest(private val bookService: BookService) : CommandLineRunner 
 
     @Bean
     fun cacheManager(): CacheManager {
-//        return ConcurrentMapCacheManager()
-        return CaffeineCacheManager()
+        return ConcurrentMapCacheManager()
+//        return CaffeineCacheManager()
     }
 
     override fun run(vararg args: String?) {
@@ -64,7 +60,9 @@ class SpringCacheTest(private val bookService: BookService) : CommandLineRunner 
                 42
             }
             val isbn = "isbn-$postfix"
-            logger.info("r $isbn --> ${rc.read(isbn).await().indefinitely()}")
+            val u = rc.read(isbn)
+            logger.info("r1 $isbn --> ${u.await().indefinitely()}")
+            logger.info("r2 $isbn --> ${u.await().indefinitely()}")
             logger.info("w $isbn --> ${wc.write(isbn, Book(isbn, "Book-$isbn")).await().indefinitely()}")
             logger.info("r $isbn --> ${rc.read(isbn).await().indefinitely()}")
         }
@@ -93,14 +91,21 @@ interface BookService {
 
 @Service
 class CacheableBookService : BookService {
+    companion object {
+        private val logger = LoggerFactory.getLogger(CacheableBookService::class.java)
+    }
+
     @Cacheable("books")
     override fun getByIsbn(isbn: String): Book? {
-        simulateSlowService()
-        return Book(isbn, "Book-title-$isbn")
+        logger.info("getByIsbn<$isbn>")
+        val book = updateCache(Book(isbn, "Book-title-$isbn"))
+        logger.info("getByIsbn<$isbn, $book>")
+        return book
     }
 
     @CachePut(value = ["books"], key = "#book.isbn")
     override fun updateCache(book: Book): Book {
+        logger.info("updateCache<$book>")
         simulateSlowService()
         return book
     }
@@ -111,21 +116,21 @@ class CacheableBookService : BookService {
     }
 }
 
-@Configuration(proxyBeanMethods = false)
-class MyProxyCachingConfiguration : ProxyCachingConfiguration() {
-    companion object {
-        private val logger = LoggerFactory.getLogger(MyProxyCachingConfiguration::class.java)
-    }
-
-    @Bean
-    override fun cacheInterceptor(cacheOperationSource: CacheOperationSource): CacheInterceptor {
-        val interceptor = CacheInterceptor()
-        interceptor.configure(errorHandler, keyGenerator, cacheResolver, cacheManager)
-        interceptor.cacheOperationSource = cacheOperationSource
-        logger.info("${this::class.simpleName} cacheInterceptor")
-        return interceptor
-    }
-}
+//@Configuration(proxyBeanMethods = false)
+//class MyProxyCachingConfiguration : ProxyCachingConfiguration() {
+//    companion object {
+//        private val logger = LoggerFactory.getLogger(MyProxyCachingConfiguration::class.java)
+//    }
+//
+//    @Bean
+//    override fun cacheInterceptor(cacheOperationSource: CacheOperationSource): CacheInterceptor {
+//        val interceptor = CacheInterceptor()
+//        interceptor.configure(errorHandler, keyGenerator, cacheResolver, cacheManager)
+//        interceptor.cacheOperationSource = cacheOperationSource
+//        logger.info("${this::class.simpleName} cacheInterceptor")
+//        return interceptor
+//    }
+//}
 
 fun main(args: Array<String>) {
     runApplication<SpringCacheTest>(*args)
